@@ -1,6 +1,12 @@
 "use client";
 import { useEffect, useState } from "react";
 import { CreateServerModel } from "../modals/create-modal";
+import { InviteModal } from "../modals/invite-modal";
+import { EditServerModel } from "../modals/edit-modal";
+import { MembersModal } from "../modals/manage-members";
+import { CreateChannelModal } from "../modals/create-channel-modal";
+import { LeaveServerModal } from "../modals/leave-server-modal";
+import { DeleteServerModal } from "../modals/delete-server-model";
 
 export const ModelProvider = () => {
   const [isMounted, setIsMounted] = useState(false);
@@ -13,5 +19,15 @@ export const ModelProvider = () => {
     return null;
   }
 
-  return <CreateServerModel />;
+  return (
+    <>
+      <CreateServerModel />
+      <InviteModal />
+      <EditServerModel />
+      <MembersModal />
+      <CreateChannelModal />
+      <LeaveServerModal />
+      <DeleteServerModal />
+    </>
+  );
 };

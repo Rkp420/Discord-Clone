@@ -11,7 +11,7 @@ const SetUpPage = async () => {
     where: {
       members: {
         some: {
-          profileId: profile._id,
+          profileId: profile.id, // Assuming 'id' is the correct field name for the profile's ID in your schema
         },
       },
     },

@@ -22,10 +22,10 @@ model Profile {
   //Relation Of Every Profile With The Server
   servers Server[]
 
-  //Relation of Every Profile As a Member
-  members Member[]
+  //Relation of Every Profile As a members
+  members members[]
 
-  //Relation of Every Profile As a Member
+  //Relation of Every Profile As a members
   channels Channel[]
 
   createdAt DateTime @default(now())
@@ -36,16 +36,16 @@ model Server {
   id         String @id @default(auto()) @map("_id") @db.ObjectId
   name       String
   imageUrl   String
-  inviteCode String
+  inviteCode String @unique
 
   //Relation With UserProfile
   profileId String  @db.ObjectId
   profile   Profile @relation(fields: [profileId], references: [id])
 
-  //Relation With the Member
-  members Member[]
+  //Relation With the members
+  members members[]
 
-  //Relation With the Member
+  //Relation With the members
   channels Channel[]
 
   createdAt DateTime @default(now())
@@ -58,7 +58,7 @@ enum MemberRole {
   GUEST
 }
 
-model Member {
+model members {
   id   String     @id @default(auto()) @map("_id") @db.ObjectId
   role MemberRole @default(GUEST)
 

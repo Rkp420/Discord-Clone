@@ -1,11 +1,9 @@
 import { redirect } from "next/navigation";
 
-
 import { db } from "@/lib/db";
 import { ChannelType } from "@prisma/client";
 import { ServerHeader } from "./server-header";
 import { currProfile } from "@/lib/current-profile";
-
 
 interface ServerSidebarProps {
   serverId: string;
@@ -49,7 +47,7 @@ const ServerSidebar = async ({ serverId }: ServerSidebarProps) => {
     (channel) => channel.type === ChannelType.VIDEO
   );
   const members = server?.members.filter(
-    (member) => member.profileId !== profile.id
+    (members) => members.profileId !== profile.id
   );
 
   if (!server) {
@@ -57,7 +55,7 @@ const ServerSidebar = async ({ serverId }: ServerSidebarProps) => {
   }
 
   const role = server.members.find(
-    (member) => member.profileId === profile.id
+    (members) => members.profileId === profile.id
   )?.role;
 
   return (
