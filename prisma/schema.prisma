@@ -23,7 +23,7 @@ model Profile {
   servers Server[]
 
   //Relation of Every Profile As a members
-  members members[]
+  members Member[]
 
   //Relation of Every Profile As a members
   channels Channel[]
@@ -43,7 +43,7 @@ model Server {
   profile   Profile @relation(fields: [profileId], references: [id])
 
   //Relation With the members
-  members members[]
+  members Member[]
 
   //Relation With the members
   channels Channel[]
@@ -58,7 +58,7 @@ enum MemberRole {
   GUEST
 }
 
-model members {
+model Member {
   id   String     @id @default(auto()) @map("_id") @db.ObjectId
   role MemberRole @default(GUEST)
 
@@ -69,6 +69,14 @@ model members {
   //Relation With Server 
   serverId String @db.ObjectId
   server   Server @relation(fields: [serverId], references: [id])
+
+  //Relation With Message
+  messages Message[]
+  directMessages DirectMessage[]
+
+  //For Better Compatiblity With The Conversations
+  conversationsInitiated Conversation[] @relation("MemberOne")
+  conversationsReceived Conversation[] @relation("MemberTwo")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -93,6 +101,59 @@ model Channel {
   serverId String @db.ObjectId
   server   Server @relation(fields: [serverId], references: [id])
 
+  //Relation With Message
+  messages Message[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Message {
+  id      String  @id @default(auto()) @map("_id") @db.ObjectId
+  content String
+  fileUrl String? // Optional: For messages with files
+
+  memberId String @db.ObjectId
+  member   Member @relation(fields: [memberId], references: [id])
+
+  channelId String  @db.ObjectId
+  channel   Channel @relation(fields: [channelId], references: [id])
+
+  deleted Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+
+model Conversation {
+  id            String          @id @default(auto()) @map("_id") @db.ObjectId
+  
+  memberOneId   String          @db.ObjectId
+  memberOne     Member          @relation("MemberOne", fields: [memberOneId], references: [id])
+  
+  memberTwoId   String          @db.ObjectId
+  memberTwo     Member          @relation("MemberTwo", fields: [memberTwoId], references: [id])
+  
+  directMessages DirectMessage[]
+  
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+}
+
+model DirectMessage {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  content       String
+  fileUrl       String?  // Optional: For direct messages with files
+  
+  memberId      String   @db.ObjectId
+  member        Member   @relation(fields: [memberId], references: [id])
+  
+  conversationId String  @db.ObjectId
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+  
+  deleted       Boolean  @default(false)
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
