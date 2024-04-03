@@ -1,8 +1,13 @@
-import { ChatHeader } from "@/components/chat/chat-header";
-import { currProfile } from "@/lib/current-profile";
-import { db } from "@/lib/db";
 import { redirectToSignIn } from "@clerk/nextjs";
 import { redirect } from "next/navigation";
+import { ChannelType } from "@prisma/client";
+
+import { currProfile } from "@/lib/current-profile";
+import { ChatHeader } from "@/components/chat/chat-header";
+import { ChatInput } from "@/components/chat/chat-input";
+import { ChatMessages } from "@/components/chat/chat-messages";
+import { MediaRoom } from "@/components/media-room";
+import { db } from "@/lib/db";
 
 interface ChannelIdPageProps {
   params: {
@@ -12,8 +17,7 @@ interface ChannelIdPageProps {
 }
 
 const ChannelIdPage = async ({ params }: ChannelIdPageProps) => {
-
-    const profile = await currProfile();
+  const profile = await currProfile();
 
   if (!profile) {
     return redirectToSignIn();
@@ -29,22 +33,55 @@ const ChannelIdPage = async ({ params }: ChannelIdPageProps) => {
     where: {
       serverId: params.serverId,
       profileId: profile.id,
-    }
+    },
   });
 
   if (!channel || !member) {
     redirect("/");
   }
 
-  return ( 
+  return (
     <div className="bg-white dark:bg-[#313338] flex flex-col h-full">
       <ChatHeader
         name={channel.name}
         serverId={channel.serverId}
         type="channel"
       />
+      {channel.type === ChannelType.TEXT && (
+        <>
+          <ChatMessages
+            member={member}
+            name={channel.name}
+            chatId={channel.id}
+            type="channel"
+            apiUrl="/api/messages"
+            socketUrl="/api/socket/messages"
+            socketQuery={{
+              channelId: channel.id,
+              serverId: channel.serverId,
+            }}
+            paramKey="channelId"
+            paramValue={channel.id}
+          />
+          <ChatInput
+            name={channel.name}
+            type="channel"
+            apiUrl="/api/socket/messages"
+            query={{
+              channelId: channel.id,
+              serverId: channel.serverId,
+            }}
+          />
+        </>
+      )}
+      {channel.type === ChannelType.AUDIO && (
+        <MediaRoom chatId={channel.id} video={false} audio={true} />
+      )}
+      {channel.type === ChannelType.VIDEO && (
+        <MediaRoom chatId={channel.id} video={true} audio={true} />
+      )}
     </div>
-  )
+  );
 };
 
 export default ChannelIdPage;

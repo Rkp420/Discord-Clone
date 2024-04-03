@@ -18,6 +18,7 @@ model Profile {
   name     String
   imageUrl String
   email    String @unique
+  userId   String   @unique
 
   //Relation Of Every Profile With The Server
   servers Server[]
