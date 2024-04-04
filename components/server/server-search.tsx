@@ -26,10 +26,11 @@ interface ServerSearchProps {
       | undefined;
   }[];
 }
-const ServerSearch = ({ data }: ServerSearchProps) => {
+
+export const ServerSearch = ({ data }: ServerSearchProps) => {
+  const [open, setOpen] = useState(false);
   const router = useRouter();
   const params = useParams();
-  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -38,6 +39,7 @@ const ServerSearch = ({ data }: ServerSearchProps) => {
         setOpen((open) => !open);
       }
     };
+
     document.addEventListener("keydown", down);
     return () => document.removeEventListener("keydown", down);
   }, []);
@@ -80,7 +82,7 @@ const ServerSearch = ({ data }: ServerSearchProps) => {
           <CommandEmpty>No Results found</CommandEmpty>
           {data.map(({ label, type, data }) => {
             if (!data?.length) return null;
-            
+
             return (
               <CommandGroup key={label} heading={label}>
                 {data?.map(({ id, icon, name }) => {
@@ -102,5 +104,3 @@ const ServerSearch = ({ data }: ServerSearchProps) => {
     </>
   );
 };
-
-export default ServerSearch;

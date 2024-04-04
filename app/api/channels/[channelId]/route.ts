@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import { MemberRole } from "@prisma/client";
 
 import { currProfile } from "@/lib/current-profile";
 import { db } from "@/lib/db";
+import { MemberRole } from "@prisma/client";
 
 export async function DELETE(
   req: Request,
@@ -26,53 +26,65 @@ export async function DELETE(
       return new NextResponse("Channel ID missing", { status: 400 });
     }
 
-    // const server = await db.server.update({
-    //   where: {
-    //     id: serverId,
-    //     members: {
-    //       some: {
-    //         profileId: profile.id,
-    //         role: {
-    //           in: [MemberRole.ADMIN, MemberRole.MODERATOR],
-    //         },
-    //       },
-    //     },
-    //   },
-    //   data: {
-    //     channels: {
-    //       delete: {
-    //         id: params.channelId,
-    //         name: {
-    //           not: "general",
-    //         },
-    //       },
-    //     },
-    //   },
-    // });
-
-    const channel = await db.channel.findUnique({
+    const server = await db.server.update({
       where: {
-        id: params.channelId,
+        id: serverId,
+        members: {
+          some: {
+            profileId: profile.id,
+            role: {
+              in: [MemberRole.ADMIN, MemberRole.MODERATOR],
+            },
+          },
+        },
+      },
+      data: {
+        channels: {
+          delete: {
+            id: params.channelId,
+            name: {
+              not: "general",
+            },
+          },
+        },
       },
     });
 
-    if (!channel) {
-      throw new Error("Channel not found");
-    }
+    //---> Another Way to Update Server
 
-    if (channel.name === "general") {
-      throw new Error("Cannot delete the general channel");
-    }
+    // const channel = await db.channel.findUnique({
+    //   where: {
+    //     id: params.channelId,
+    //   },
+    //   include: {
+    //     messages: true, // Include messages related to this channel
+    //   },
+    // });
 
-    // Proceed with deletion
-    await db.channel.delete({
-      where: { id: params.channelId },
-    });
+    // if (!channel) {
+    //   throw new Error("Channel not found");
+    // }
 
-    // Fetch and return updated server info
-    const server = await db.server.findUnique({
-      where: { id: serverId },
-    });
+    // if (channel.name === "general") {
+    //   throw new Error("Cannot delete the general channel");
+    // }
+
+    // //Delete related messages
+    // await db.message.deleteMany({
+    //   where: {
+    //     channelId: params.channelId,
+    //   },
+    // });
+
+    // // Proceed with deletion
+    // await db.channel.delete({
+    //   where: { id: params.channelId },
+    // });
+
+    // // Fetch and return updated server info
+    // const server = await db.server.findUnique({
+    //   where: { id: serverId },
+    // });
 
     return NextResponse.json(server);
   } catch (error) {

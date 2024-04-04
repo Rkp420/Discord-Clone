@@ -3,6 +3,49 @@ import { NextResponse } from "next/server";
 import { currProfile } from "@/lib/current-profile";
 import { db } from "@/lib/db";
 
+export async function GET(
+  req: Request,
+  { params }: { params: { serverId: string } }
+) {
+  try {
+    const profile = await currProfile();
+
+    if (!profile) {
+      return NextResponse.json("UnAuthorised", { status: 401 });
+    }
+
+    const serverData = await db.server.findUnique({
+      where: {
+        id: params.serverId,
+      },
+      include: {
+        channels: {
+          orderBy: {
+            createdAt: "asc",
+          },
+        },
+        members: {
+          include: {
+            profile: true,
+          },
+          orderBy: {
+            role: "asc",
+          },
+        },
+      },
+    });
+
+    if (!serverData) {
+      return NextResponse.json("Server Not Found", { status: 401 });
+    }
+
+    return NextResponse.json(serverData, { status: 200 });
+  } catch (error) {
+    console.log("DATA_FETCHING", error);
+    return NextResponse.json("Internal Server Error", { status: 500 });
+  }
+}
+
 export async function DELETE(
   req: Request,
   { params }: { params: { serverId: string } }
