@@ -59,6 +59,15 @@ export async function DELETE(
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
+    // First, update messages to mark them as deleted or nullify memberId
+    await db.message.deleteMany({
+      where: {
+        channel: {
+          serverId: params.serverId,
+        },
+      },
+    });
+
     await db.member.deleteMany({
       where: {
         serverId: params.serverId,

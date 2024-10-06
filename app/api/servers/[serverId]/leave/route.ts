@@ -18,44 +18,50 @@ export async function PATCH(
       return new NextResponse("Server ID missing", { status: 400 });
     }
 
-    // const server = await db.server.create({
-    //   data: {
-    //     profileId: profile.id,
-    //     name,
-    //     imageUrl,
-    //     inviteCode: uuidv4(),
-    //     channels: {
-    //       create: [{ name: "general", profileId: profile.id }],
-    //     },
-    //     members: {
-    //       create: [{ profileId: profile.id, role: MemberRole.ADMIN }],
-    //     },
-    //   },
-    // })
-
-    
-
     // Assuming 'members' is the correct collection to work with,
     // and each member has a 'serverId' and 'profileId' to identify their membership.
-    const result = await db.member.deleteMany({
+    const member = await db.member.findFirst({
       where: {
         serverId: params.serverId,
         profileId: profile.id,
       },
     });
 
-    if (result.count === 0) {
-      // No members were deleted, which means either the serverId or profileId did not match.
-      return new NextResponse("Member not found or already removed.", {
-        status: 404,
+    if (!member) {
+      return new NextResponse("Member not found", { status: 404 });
+    }
+
+    // If the member is an admin, prevent them from leaving
+    if (member.role === "ADMIN") {
+      return new NextResponse("Admin cannot leave the server.", {
+        status: 403,
       });
     }
+    const channels = await db.channel.findMany({
+      where: { serverId: params.serverId },
+      include: { messages: true }, // Include messages if needed
+    });
+
+    // Delete messages associated with the channels
+    await Promise.all(
+      channels.map(async (channel) => {
+        await db.message.deleteMany({
+          where: { channelId: channel.id },
+        });
+      })
+    );
+    
+    // Delete the member
+    await db.member.delete({
+      where: {
+        id: member.id,
+      },
+    });
 
     return new NextResponse(
       JSON.stringify({
         success: true,
         message: "Member left the server.",
-        count: result.count,
       }),
       { status: 200 }
     );
